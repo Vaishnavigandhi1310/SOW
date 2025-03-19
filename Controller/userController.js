@@ -1,23 +1,34 @@
 const { createHmac } = require("crypto");
 const UserModel = require("../Model/userModel");
 const { otp, sentOtp } = require("../utils/helper");
+
 const addUser = async (req, res) => {
-  const { name, email, password, mobile, location, interests } = req.body;
-  console.log(res.body);
+  let { name, email, password, mobile, location, interests } = req.body;
+  interests = interests.split(",");
 
   try {
-    let user = await UserModel.find({ email });
+    let user = await UserModel.find({
+      $or: [
+        { email: email, isverify: true },
+        { mobile: mobile, isverify: true },
+      ],
+    });
     if (user.length === 0) {
+      let code = otp(6);
+      console.log(code);
       user = await UserModel({
         name,
         email,
         password,
         mobile,
         location,
-        interests,
+        interests: interests,
+        otp: code,
       });
+      sentOtp(email, code);
       user = await user.save();
-      res.status(201).send({ massage: "Success !", data: user });
+
+      res.status(201).send({ massage: "Success  otp is send to your mail !" });
     } else {
       res
         .status(401)
@@ -27,6 +38,24 @@ const addUser = async (req, res) => {
     res.status(400).send({ massage: "Failed !", data: "", error: error });
   }
 };
+
+const verifySignupOtp = async (req, res) => {
+  let { otp } = req.body;
+  try {
+    let user = await UserModel.findOne({ email: req.params.email });
+    if (user.otp == otp) {
+      await UserModel.updateOne(
+        { email },
+        { $set: { isverify: true, otp: null } }
+      );
+
+      res.status(200).send({ message: "otp verified !", data: user });
+    }
+  } catch (error) {
+    res.status(400).send({ message: "Failed !", data: "", error: error });
+  }
+};
+
 const getUser = async (req, res) => {
   try {
     let userdata = await UserModel.find({});
@@ -78,6 +107,13 @@ const updateUserName = async (req, res) => {
 
 const login = async (req, res) => {
   try {
+    const { email } = req.body;
+    const user = await UserModel.findOne({
+      $and: [{ email: email }, { isverify: true }, { isDelete: false }],
+    });
+    if (!user) {
+      return res.status(404).send({ message: "User not found!" });
+    }
     let token = await UserModel.matchPassword(
       req.body.email,
       req.body.password
@@ -156,7 +192,6 @@ const addIntersts = async (req, res) => {
     const { id } = req.params;
     let { interests } = req.body;
 
-  
     if (typeof interests === "string") {
       try {
         interests = JSON.parse(interests); // Convert JSON string to array
@@ -194,4 +229,5 @@ module.exports = {
   verifyOtp,
   addIntersts,
   resetPassword,
+  verifySignupOtp,
 };
