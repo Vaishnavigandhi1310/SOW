@@ -9,8 +9,8 @@ const addUser = async (req, res) => {
   try {
     let user = await UserModel.find({
       $or: [
-        { email: email, isverify: true },
-        { mobile: mobile, isverify: true },
+        { email: email, isVerified: true },
+        { mobile: mobile, isVerified: true },
       ],
     });
     if (user.length === 0) {
@@ -45,14 +45,16 @@ const verifySignupOtp = async (req, res) => {
     let user = await UserModel.findOne({ email: req.params.email });
     if (user.otp == otp) {
       await UserModel.updateOne(
-        { email },
-        { $set: { isverify: true, otp: null } }
+        { email: req.params.email },
+        { $set: { isVerified: true, otp: null } }
       );
 
       res.status(200).send({ message: "otp verified !", data: user });
     }
   } catch (error) {
     res.status(400).send({ message: "Failed !", data: "", error: error });
+    console.log(error);
+    
   }
 };
 
@@ -109,7 +111,7 @@ const login = async (req, res) => {
   try {
     const { email } = req.body;
     const user = await UserModel.findOne({
-      $and: [{ email: email }, { isverify: true }, { isDelete: false }],
+      $and: [{ email: email }, { isVerified: true }, { isDelete: false }],
     });
     if (!user) {
       return res.status(404).send({ message: "User not found!" });

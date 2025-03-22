@@ -31,7 +31,7 @@ const userSchema = new mongoose.Schema(
     },
     interests: [{ type: String,required:true }],
     otp: {
-      type: String,
+      type: Number,
     },
     auth:{
       type:String,
