@@ -16,7 +16,7 @@ const addEvent = async (req, res) => {
     if (event.eventPic === undefined) {
         event.eventPic = "";
     } else {
-        event.eventPic = req.file.destination + "/" + req.file.filename;
+        event.eventPic =  req.file.filename;
     }
 
     try {

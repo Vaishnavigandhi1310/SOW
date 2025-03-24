@@ -12,7 +12,8 @@ const GroupSchema =  new mongoose.Schema({
         type:String,
         required:true,
     },
-    status: { type: String, enum: ["pending", "active", "inactive"], default: "pending" },
+    status: { type: String,
+    default: "pending" },
     groupMember:[{}],
        
 },{

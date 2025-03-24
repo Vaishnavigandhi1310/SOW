@@ -13,8 +13,8 @@ const{upload}=require("../Middleware/userMiddleware");
 
 
 
-router.route("/").post( upload.single("eventPic"),addEvent);
-router.route("/").get(getAllEvents);
+router.route("/addEvent").post( upload.single("eventPic"),addEvent);
+router.route("/getAllEvents").get(getAllEvents);
 
 
 
